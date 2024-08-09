@@ -1,16 +1,14 @@
 import asyncio
 
-from aiogram import Router, F, types
+from aiogram import F, Router, types
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.markdown import hlink
 
-from database.db import get_signature, add_signature, delete_signature, update_signature, update_signature_url, \
-    get_signature_for_title
-from keyboards import restore_post_kb, get_main_post_kb, publish_telegram_kb, back_edit_kb, get_signatures, \
-    back_main_kb, back_sign_kb, get_signatures_for_del, get_edit_signature_kb, back_sign_edit_kb, \
-    set_signature_for_post_kb
-from routers.post.operations import empty_signature, delete_signature_in_text, get_text_and_signature_title_url
-from routers.post.states import AddText, AddMedia, AddSignature, AddSignatureText, AddSignatureUrl
+from database.db import add_signature, delete_signature, get_signature, update_signature, update_signature_url
+from keyboards import back_edit_kb, back_sign_edit_kb, back_sign_kb, get_edit_signature_kb, get_main_post_kb, \
+    get_signatures, get_signatures_for_del, publish_telegram_kb, restore_post_kb, set_signature_for_post_kb
+from routers.post.operations import delete_signature_in_text, empty_signature, get_text_and_signature_title_url
+from routers.post.states import AddMedia, AddSignature, AddSignatureText, AddSignatureUrl, AddText
 
 router = Router()
 

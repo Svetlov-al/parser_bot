@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: parser_bot
+    volumes:
+      - .:/app
+      - dblite_data:/app
+    env_file:
+      - .env
+    command: python main.py
+
+volumes:
+  dblite_data:
+    name: dblite_data

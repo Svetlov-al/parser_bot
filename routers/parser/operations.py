@@ -4,8 +4,7 @@ from aiogram.utils.markdown import hlink
 from pyrogram import Client
 
 from database.clients import clients
-from database.db import get_sources, get_post_info, add_post_info, get_parser_info, add_parser_info, get_all_signatures, \
-    get_all_parser_info
+from database.db import add_post_info, get_all_parser_info, get_all_signatures, get_post_info, get_sources
 
 
 def get_all_sources(user_id):

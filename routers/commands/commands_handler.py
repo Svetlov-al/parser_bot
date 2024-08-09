@@ -1,9 +1,7 @@
 import asyncio
 
-from aiogram import types, Router, F
+from aiogram import Router, types
 from aiogram.filters import CommandStart
-from aiogram.utils.media_group import MediaGroupBuilder
-from aiogram_media_group import media_group_handler
 
 from keyboards import main_kb
 
