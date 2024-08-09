@@ -4,3 +4,4 @@ db.db
 25860381.session
 __pycache__/
 test.py
+.env
