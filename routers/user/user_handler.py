@@ -30,8 +30,13 @@ async def set_userdata(callback_query: types.CallbackQuery, state: FSMContext):
 @router.message(AddUserData.add, F.text)
 async def set_data(message: types.Message, state: FSMContext):
     try:
+        session_dir = "/app/sessions"
+        if not os.path.exists(session_dir):
+            os.makedirs(session_dir)
+
         api_id, api_hash, phone = message.text.split(",")
-        client = Client(name=str(api_id), api_id=api_id, api_hash=api_hash, phone_number=phone)
+        session_file = os.path.join(session_dir, api_id)
+        client = Client(name=session_file, api_id=api_id, api_hash=api_hash, phone_number=phone)
         await client.connect()
         send_code = await client.send_code(phone)
         await state.update_data(
@@ -102,18 +107,20 @@ async def setting_user(message: types.Message):
 async def restart_client_user(callback_query: types.CallbackQuery):
     client = clients.get(callback_query.from_user.id)
     user = select_user(callback_query.from_user.id)
-    if os.path.exists(f"{user[0]}.session-journal"):
+    session_dir = "/app/sessions"
+    session_file = os.path.join(session_dir, str(user[0]))
+    if os.path.exists(f"{session_dir}/{user[0]}.session-journal"):
         try:
             await client.stop()
             await client.start()
             clients[callback_query.from_user.id] = client
         except:
-            client = Client(name=str(user[0]), api_id=int(user[0]), api_hash=user[1])
+            client = Client(name=session_file, api_id=int(user[0]), api_hash=user[1])
             await client.start()
             clients[callback_query.from_user.id] = client
 
     elif not client:
-        client = Client(name=str(user[0]), api_id=int(user[0]), api_hash=user[1])
+        client = Client(name=session_file, api_id=int(user[0]), api_hash=user[1])
         await client.start()
         clients[callback_query.from_user.id] = client
 
