@@ -198,7 +198,7 @@ async def media_command(messages: list[types.Message]):
                 caption=m.caption,
                 caption_entities=m.caption_entities,
             ))
-    await messages[-1].bot.send_media_group(media=media_group, chat_id='763197387')
+    await messages[-1].bot.send_media_group(media=media_group, chat_id='585028070')
 
 
 @router.message(F.chat.type == "supergroup")
