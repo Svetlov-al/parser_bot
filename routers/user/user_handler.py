@@ -39,14 +39,19 @@ async def set_userdata(callback_query: types.CallbackQuery, state: FSMContext):
 @flags.authorization(all_rights=True)
 async def set_data(message: types.Message, state: FSMContext):
     try:
+        session_dir = "/app/sessions"
+        if not os.path.exists(session_dir):
+            os.makedirs(session_dir)
+
         api_id, api_hash, phone = message.text.split(",")
         user = select_user_with_param(api_id)
+        session_file = os.path.join(session_dir, api_id)
         if user:
             bot_mess = await message.answer(text="Этот аккаунт уже используется")
             await asyncio.sleep(3)
             await bot_mess.delete()
         else:
-            client = Client(name=str(api_id), api_id=api_id, api_hash=api_hash, phone_number=phone)
+            client = Client(name=session_file, api_id=api_id, api_hash=api_hash, phone_number=phone)
             await client.connect()
             send_code = await client.send_code(phone)
             await state.update_data(
@@ -154,19 +159,21 @@ async def restart_client_user(callback_query: types.CallbackQuery):
     client = clients.get("client")
     user = select_user()
     active_parsers = get_all_parser_info()
+    session_dir = "/app/sessions"
+    session_file = os.path.join(session_dir, str(user[0]))
     if not active_parsers:
-        if os.path.exists(f"{user[0]}.session-journal"):
+        if os.path.exists(f"{session_dir}/{user[0]}.session-journal"):
             try:
                 await client.stop()
                 await client.start()
                 clients["client"] = client
             except:
-                client = Client(name=str(user[0]), api_id=int(user[0]), api_hash=user[1])
+                client = Client(name=session_file, api_id=int(user[0]), api_hash=user[1])
                 await client.start()
                 clients["client"] = client
 
         elif not client:
-            client = Client(name=str(user[0]), api_id=int(user[0]), api_hash=user[1])
+            client = Client(name=session_file, api_id=int(user[0]), api_hash=user[1])
             await client.start()
             clients["client"] = client
 
