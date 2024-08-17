@@ -1,23 +1,165 @@
-from database.db import get_signature_for_title
+import asyncio
+import copy
+import re
+from datetime import datetime, timedelta
+
+from aiogram import types
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from pytz import timezone
+
+from database.db import get_all_signatures, select_samples
+from routers.admin.operations import get_channels_ids
+
+
+def end_publish_post(time_publish=None):
+    builder = InlineKeyboardBuilder()
+    if time_publish:
+        builder.row(
+            InlineKeyboardButton(text=f"Пост будет отправлен через {time_publish} в 💎 телеграмм",
+                                 callback_data="_blank_"))
+    else:
+        builder.row(InlineKeyboardButton(text=f"Пост отправлен в 💎 телеграмм", callback_data="_blank_"))
+    builder.row(InlineKeyboardButton(text="✍️ Продолжить работу", callback_data="back_to_main"))
+    builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data="post_delete"))
+    return builder.as_markup()
 
 
 def empty_signature(mess_text):
-    mess_split = mess_text.split("\n\n")
-    sign_text = mess_split[-1]
-    sign = get_signature_for_title(sign_text)
-    if sign:
-        return False
+    signatures = get_all_signatures()
+    for sign in signatures:
+        if sign[1] in mess_text:
+            return False
     return True
 
 
-def delete_signature_in_text(mess_text):
-    mess_split = mess_text.split("\n\n")[:-1]
-    return "\n\n".join(mess_split)
+def delete_signature_in_text(mess_text, new_sign):
+    signatures = get_all_signatures()
+    for sign in signatures:
+        if sign[1] in mess_text:
+            text = mess_text.replace(sign[1], new_sign)
+            return text
+    return mess_text
 
 
-def get_text_and_signature_title_url(mess_text):
-    pre_data = mess_text.split("\n\n")
-    text = pre_data[:-1]
-    sign_title = pre_data[-1]
-    sign_url = get_signature_for_title(sign_title)[0]
-    return "\n\n".join(text), sign_title, sign_url
+def get_time_sleep(time_str):
+    tz = timezone("Europe/Moscow")
+    time_me = datetime.strptime(time_str, "%d/%m/%Y, %H:%M")
+    time_now_str = datetime.now(tz=tz).strftime("%d/%m/%Y, %H:%M")
+    time_now = datetime.strptime(time_now_str, "%d/%m/%Y, %H:%M")
+    time_ = time_me - time_now
+    total_sec = int(time_.total_seconds())
+    if total_sec < 0:
+        return None
+    else:
+        return total_sec
+
+
+def check_format(time_str):
+    try:
+        datetime.strptime(time_str, "%d/%m/%Y, %H:%M")
+        return True
+    except:
+        return False
+
+
+async def publish_post_now(callback_query: types.CallbackQuery):
+    chat_ids = get_channels_ids()
+    if chat_ids:
+        for chat_id in chat_ids:
+            if callback_query.message.photo:
+                await callback_query.bot.send_photo(chat_id=chat_id, caption=callback_query.message.html_text,
+                                                    photo=callback_query.message.photo[-1].file_id)
+            elif callback_query.message.video:
+                await callback_query.bot.send_video(chat_id=chat_id,
+                                                    caption=callback_query.message.html_text,
+                                                    video=callback_query.message.video.file_id)
+            elif callback_query.message.text:
+
+                await callback_query.bot.send_message(chat_id=chat_id,
+                                                      text=callback_query.message.html_text)
+
+        await callback_query.answer("Пост сейчас появится в канале")
+        await callback_query.message.edit_reply_markup(reply_markup=end_publish_post())
+    else:
+        await callback_query.answer("Канал для публикации не настроен")
+
+
+async def publish_post_mg_now(callback_query: types.CallbackQuery, messages_ids):
+    chat_ids = get_channels_ids()
+    if chat_ids:
+        for chat_id in chat_ids:
+            await callback_query.bot.copy_messages(chat_id=chat_id, from_chat_id=callback_query.message.chat.id,
+                                                   message_ids=[int(mess) for mess in messages_ids.split("_")])
+        await callback_query.answer("Пост сейчас появится в канале")
+    else:
+        await callback_query.answer("Канал для публикации не настроен")
+
+
+async def publish_post_mg_on_time(message: types.Message, messages_ids, time_sleep):
+    chat_ids = get_channels_ids()
+    if chat_ids:
+        bot_message = await message.answer("Пост появиться в канале в указанное время")
+        await asyncio.sleep(3)
+        await bot_message.delete()
+
+        await asyncio.sleep(time_sleep)
+        for chat_id in chat_ids:
+            await message.bot.copy_messages(chat_id=chat_id, message_ids=[int(mess) for mess in messages_ids],
+                                            from_chat_id=message.chat.id)
+    else:
+        bot_mess = await message.answer("Канал для публикации не настроен")
+        await asyncio.sleep(3)
+        await bot_mess.delete()
+
+
+async def publish_post_on_time(message: types.Message, time_sleep):
+    chat_ids = get_channels_ids()
+    if chat_ids:
+        bot_message = await message.answer("Пост появиться в канале в указанное время")
+        await message.edit_reply_markup(reply_markup=end_publish_post(timedelta(seconds=time_sleep)))
+        await asyncio.sleep(3)
+        await bot_message.delete()
+        if message.photo:
+            await asyncio.sleep(time_sleep)
+            for chat_id in chat_ids:
+                await message.bot.send_photo(chat_id=chat_id, caption=message.html_text,
+                                             photo=message.photo[-1].file_id)
+        elif message.video:
+            await asyncio.sleep(time_sleep)
+            for chat_id in chat_ids:
+                await message.bot.send_video(chat_id=chat_id, caption=message.html_text,
+                                             video=message.video.file_id)
+        elif message.text:
+            await asyncio.sleep(time_sleep)
+            for chat_id in chat_ids:
+                await message.bot.send_message(chat_id=chat_id, text=message.html_text)
+
+    else:
+        bot_mess = await message.answer("Канал для публикации не настроен")
+        await asyncio.sleep(3)
+        await bot_mess.delete()
+
+
+def clean_html(text):
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
+
+
+def get_unique_file_id(message: types.Message):
+    if message.photo:
+        return message.photo[-1].file_unique_id
+    elif message.video:
+        return message.video.file_unique_id
+    else:
+        return None
+
+
+def delete_samples_in_text(mess_text):
+    if mess_text:
+        new_text = copy.copy(mess_text)
+        samples = select_samples()
+        for sample in samples:
+            if sample[1] in new_text:
+                new_text = new_text.replace(sample[1], " ")
+        return new_text

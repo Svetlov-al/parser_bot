@@ -19,3 +19,31 @@ class AddSignatureText(StatesGroup):
 
 class AddSignatureUrl(StatesGroup):
     add = State()
+
+
+class AddTimePost(StatesGroup):
+    add = State()
+
+
+class AddTextMg(StatesGroup):
+    add = State()
+
+
+class AddMediaMg(StatesGroup):
+    add = State()
+
+
+class AddSignatureMg(StatesGroup):
+    add = State()
+
+
+class AddSignatureTextMg(StatesGroup):
+    add = State()
+
+
+class AddSignatureUrlMg(StatesGroup):
+    add = State()
+
+
+class AddTimePostMg(StatesGroup):
+    add = State()
