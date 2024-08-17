@@ -2,3 +2,4 @@ aiogram
 pyrogram
 python-dotenv
 aiogram-media-group
+pytz
