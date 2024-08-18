@@ -16,10 +16,10 @@ def end_publish_post(time_publish=None):
     builder = InlineKeyboardBuilder()
     if time_publish:
         builder.row(
-            InlineKeyboardButton(text=f"Пост будет отправлен через {time_publish} в 💎 телеграмм",
+            InlineKeyboardButton(text=f"Пост будет опубликован через {time_publish}",
                                  callback_data="_blank_"))
     else:
-        builder.row(InlineKeyboardButton(text=f"Пост отправлен в 💎 телеграмм", callback_data="_blank_"))
+        builder.row(InlineKeyboardButton(text=f"Пост ✅ опубликован", callback_data="_blank_"))
     # builder.row(InlineKeyboardButton(text="✍️ Продолжить работу", callback_data="back_to_main"))
     builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data="post_delete"))
     return builder.as_markup()

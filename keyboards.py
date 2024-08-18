@@ -116,9 +116,9 @@ def get_main_post_kb():
             [
                 InlineKeyboardButton(text="💎 Пост в телеграмм", callback_data=f"telegram_kb"),
             ],
-            [
-                InlineKeyboardButton(text="▶️ Пост в вконтакте", callback_data=f"vkontakte_kb"),
-            ],
+            # [
+            #     InlineKeyboardButton(text="▶️ Пост в вконтакте", callback_data=f"vkontakte_kb"),
+            # ],
             [
                 InlineKeyboardButton(text="📃 Добавить описание", callback_data=f"add_desc"),
             ],
@@ -138,9 +138,9 @@ def get_main_post_kb_for_media_group(message_id):
             [
                 InlineKeyboardButton(text="💎 Пост в телеграмм", callback_data=f"mg_telegram_kb{message_id}"),
             ],
-            [
-                InlineKeyboardButton(text="▶️ Пост в вконтакте", callback_data=f"mg_vkontakte_kb{message_id}"),
-            ],
+            # [
+            #     InlineKeyboardButton(text="▶️ Пост в вконтакте", callback_data=f"mg_vkontakte_kb{message_id}"),
+            # ],
             [
                 InlineKeyboardButton(text="📃 Добавить описание", callback_data=f"mg_add_desc{message_id}"),
             ],
