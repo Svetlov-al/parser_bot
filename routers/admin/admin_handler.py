@@ -28,6 +28,13 @@ async def admin_panel_add_user_back(callback_query: types.CallbackQuery, state: 
     await state.clear()
 
 
+@router.callback_query(F.data == "back_admin_panel")
+async def back_admin_panel(callback_query: types.CallbackQuery, state: FSMContext):
+    await state.clear()
+    if is_admin(callback_query.from_user.id):
+        await callback_query.message.edit_caption(caption="🅰️<b> Админ панель </b>🅰️", reply_markup=admin_panel_kb)
+
+
 @router.callback_query(F.data == "back_edit_parser")
 async def admin_panel_add_user_back(callback_query: types.CallbackQuery, state: FSMContext):
     await callback_query.message.edit_caption(caption="Чат для обмена постами бота и юзербота\n"
@@ -71,6 +78,14 @@ async def admin_panel_edit_sample_delete_add_step2(message: types.Message, state
                                            reply_markup=get_samples_kb())
 
 
+@router.callback_query(F.data == "add_sample")
+async def admin_panel_edit_sample_delete_add_step1(callback_query: types.CallbackQuery, state: FSMContext):
+    await callback_query.message.edit_caption(caption="Введите текст, слово",
+                                              reply_markup=back_admin_panel_kb)
+    await state.set_state(AddSample.add)
+    await state.update_data({"mess_id": callback_query.message.message_id})
+
+
 @router.callback_query(AddSample.add)
 async def admin_panel_edit_sample_delete_add_valid(callback_query: types.CallbackQuery, state: FSMContext):
     await callback_query.answer("Ожидаю шаблон для удаления")
@@ -82,13 +97,6 @@ async def admin_panel(message: types.Message):
     if is_admin(message.from_user.id):
         await message.answer_photo(caption="🅰️<b> Админ панель </b>🅰️", reply_markup=admin_panel_kb,
                                    photo=PHOTO_ADMIN_PANEL)
-
-
-@router.callback_query(F.data == "back_admin_panel")
-async def back_admin_panel(callback_query: types.CallbackQuery, state: FSMContext):
-    await state.clear()
-    if is_admin(callback_query.from_user.id):
-        await callback_query.message.edit_caption(caption="🅰️<b> Админ панель </b>🅰️", reply_markup=admin_panel_kb)
 
 
 @router.callback_query(F.data == "delete_admin_panel")
@@ -323,14 +331,6 @@ async def admin_panel_edit_sample_delete(callback_query: types.CallbackQuery):
     await callback_query.message.edit_caption(caption="Какой текст, сообщения, слова удалять\n"
                                                       "Удаляет только по полному совпадению",
                                               reply_markup=get_samples_kb())
-
-
-@router.callback_query(F.data == "add_sample")
-async def admin_panel_edit_sample_delete_add_step1(callback_query: types.CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_caption(caption="Введите текст, слово",
-                                              reply_markup=back_admin_panel_kb)
-    await state.set_state(AddSample.add)
-    await state.update_data({"mess_id": callback_query.message.message_id})
 
 
 @router.callback_query((F.data == "delete_sample") | F.data.startswith("samp_delete_"))

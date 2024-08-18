@@ -24,6 +24,18 @@ async def back_edit_mg_post(callback_query: types.CallbackQuery, state: FSMConte
     await state.clear()
 
 
+@router.callback_query(F.data.startswith("mgp_back_telegram_kb"))
+@flags.authorization(post_rights=True)
+async def back_publish_post_mg_tg(callback_query: types.CallbackQuery, state: FSMContext):
+    messages_ids = callback_query.data.split("mgp_back_telegram_kb")[-1]
+    data = await state.get_data()
+    if data:
+        mess_bot = data.get("mess_time")
+        await mess_bot.delete()
+    await state.clear()
+    await callback_query.message.edit_reply_markup(reply_markup=publish_telegram_mg_kb(messages_ids))
+
+
 @router.callback_query(AddTextMg.add)
 @flags.authorization(post_rights=True)
 async def edit_post_mg_text_valid(callback_query: types.CallbackQuery):
@@ -34,14 +46,6 @@ async def edit_post_mg_text_valid(callback_query: types.CallbackQuery):
 @flags.authorization(post_rights=True)
 async def edit_post_mg_media_valid(callback_query: types.CallbackQuery):
     await callback_query.answer("Пришлите медиа")
-
-
-@router.callback_query(F.data.startswith("mgp_back_telegram_kb"))
-@flags.authorization(post_rights=True)
-async def back_publish_post_mg_tg(callback_query: types.CallbackQuery, state: FSMContext):
-    messages_ids = callback_query.data.split("mgp_back_telegram_kb")[-1]
-    await state.clear()
-    await callback_query.message.edit_reply_markup(reply_markup=publish_telegram_mg_kb(messages_ids))
 
 
 @router.callback_query(AddTimePostMg.add)
@@ -378,11 +382,9 @@ async def publish_post_mg_tg_on_time(callback_query: types.CallbackQuery, state:
     messages_ids = callback_query.data.split("mg_set_publish_time_tg")[-1]
     await callback_query.message.edit_reply_markup(reply_markup=back_publish_mg_tg(messages_ids))
     bot_message = await callback_query.message.answer(
-        "Введите дату и время в формате -> день/месяц/год, часы:минуты \nПример: 04/12/2024, 15:00")
+        "Введите дату и время\nПример: 04.12.2024 15:00")
     await state.set_state(AddTimePostMg.add)
-    await state.update_data({"message": callback_query.message, "message_ids": messages_ids})
-    await asyncio.sleep(3)
-    await bot_message.delete()
+    await state.update_data({"message": callback_query.message, "message_ids": messages_ids, "mess_time": bot_message})
 
 
 @router.message(AddTimePostMg.add, F.text)
@@ -391,13 +393,15 @@ async def publish_post_mg_tg_set_time(message: types.Message, state: FSMContext)
     time_str = message.text
     await message.delete()
     if not check_format(time_str):
-        bot_message = await message.answer("Не верный формат, день/месяц/год, часы:минуты")
+        bot_message = await message.answer("Не верный формат, день.месяц.год часы:минуты")
         await asyncio.sleep(3)
         await bot_message.delete()
     else:
         time_sleep = get_time_sleep(time_str)
         if time_sleep:
             data = await state.get_data()
+            mess_bot = data.get("mess_time")
+            await mess_bot.delete()
             await state.clear()
             await publish_post_mg_on_time(data.get("message"), data.get("message_ids").split("_"), time_sleep)
         else:

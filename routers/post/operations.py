@@ -20,7 +20,7 @@ def end_publish_post(time_publish=None):
                                  callback_data="_blank_"))
     else:
         builder.row(InlineKeyboardButton(text=f"Пост отправлен в 💎 телеграмм", callback_data="_blank_"))
-    builder.row(InlineKeyboardButton(text="✍️ Продолжить работу", callback_data="back_to_main"))
+    # builder.row(InlineKeyboardButton(text="✍️ Продолжить работу", callback_data="back_to_main"))
     builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data="post_delete"))
     return builder.as_markup()
 
@@ -44,9 +44,9 @@ def delete_signature_in_text(mess_text, new_sign):
 
 def get_time_sleep(time_str):
     tz = timezone("Europe/Moscow")
-    time_me = datetime.strptime(time_str, "%d/%m/%Y, %H:%M")
-    time_now_str = datetime.now(tz=tz).strftime("%d/%m/%Y, %H:%M")
-    time_now = datetime.strptime(time_now_str, "%d/%m/%Y, %H:%M")
+    time_me = datetime.strptime(time_str, "%d.%m.%Y %H:%M")
+    time_now_str = datetime.now(tz=tz).strftime("%d.%m.%Y %H:%M")
+    time_now = datetime.strptime(time_now_str, "%d.%m.%Y %H:%M")
     time_ = time_me - time_now
     total_sec = int(time_.total_seconds())
     if total_sec < 0:
@@ -57,7 +57,7 @@ def get_time_sleep(time_str):
 
 def check_format(time_str):
     try:
-        datetime.strptime(time_str, "%d/%m/%Y, %H:%M")
+        datetime.strptime(time_str, "%d.%m.%Y %H:%M")
         return True
     except:
         return False
@@ -100,6 +100,7 @@ async def publish_post_mg_on_time(message: types.Message, messages_ids, time_sle
     chat_ids = get_channels_ids()
     if chat_ids:
         bot_message = await message.answer("Пост появиться в канале в указанное время")
+        await message.edit_reply_markup(reply_markup=end_publish_post(timedelta(seconds=time_sleep)))
         await asyncio.sleep(3)
         await bot_message.delete()
 
