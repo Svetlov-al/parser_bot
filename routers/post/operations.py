@@ -8,7 +8,8 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from pytz import timezone
 
-from database.db import get_all_signatures, select_samples
+from database.db import get_all_signatures, select_samples, add_published_post
+from keyboards import publish_post_now_kb, publish_post_with_time, publish_post_mg_now_kb, publish_post_mg_with_time_kb
 from routers.admin.operations import get_channels_ids
 
 
@@ -20,7 +21,6 @@ def end_publish_post(time_publish=None):
                                  callback_data="_blank_"))
     else:
         builder.row(InlineKeyboardButton(text=f"Пост ✅ опубликован", callback_data="_blank_"))
-    # builder.row(InlineKeyboardButton(text="✍️ Продолжить работу", callback_data="back_to_main"))
     builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data="post_delete"))
     return builder.as_markup()
 
@@ -78,9 +78,9 @@ async def publish_post_now(callback_query: types.CallbackQuery):
 
                 await callback_query.bot.send_message(chat_id=chat_id,
                                                       text=callback_query.message.html_text)
-
-        await callback_query.answer("Пост сейчас появится в канале")
-        await callback_query.message.edit_reply_markup(reply_markup=end_publish_post())
+        add_published_post(callback_query.message.message_id, "tg")
+        await callback_query.message.edit_reply_markup(
+            reply_markup=publish_post_now_kb(callback_query.message.message_id))
     else:
         await callback_query.answer("Канал для публикации не настроен")
 
@@ -91,7 +91,10 @@ async def publish_post_mg_now(callback_query: types.CallbackQuery, messages_ids)
         for chat_id in chat_ids:
             await callback_query.bot.copy_messages(chat_id=chat_id, from_chat_id=callback_query.message.chat.id,
                                                    message_ids=[int(mess) for mess in messages_ids.split("_")])
+        add_published_post(messages_ids, "tg")
         await callback_query.answer("Пост сейчас появится в канале")
+        await callback_query.message.edit_reply_markup(
+            reply_markup=publish_post_mg_now_kb(messages_ids))
     else:
         await callback_query.answer("Канал для публикации не настроен")
 
@@ -100,7 +103,8 @@ async def publish_post_mg_on_time(message: types.Message, messages_ids, time_sle
     chat_ids = get_channels_ids()
     if chat_ids:
         bot_message = await message.answer("Пост появиться в канале в указанное время")
-        await message.edit_reply_markup(reply_markup=end_publish_post(timedelta(seconds=time_sleep)))
+        add_published_post("_".join(messages_ids), "tg")
+        await message.edit_reply_markup(reply_markup=publish_post_mg_with_time_kb("_".join(messages_ids)))
         await asyncio.sleep(3)
         await bot_message.delete()
 
@@ -118,7 +122,8 @@ async def publish_post_on_time(message: types.Message, time_sleep):
     chat_ids = get_channels_ids()
     if chat_ids:
         bot_message = await message.answer("Пост появиться в канале в указанное время")
-        await message.edit_reply_markup(reply_markup=end_publish_post(timedelta(seconds=time_sleep)))
+        add_published_post(message.message_id, "tg")
+        await message.edit_reply_markup(reply_markup=publish_post_with_time(message.message_id))
         await asyncio.sleep(3)
         await bot_message.delete()
         if message.photo:
