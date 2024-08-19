@@ -54,6 +54,10 @@ async def db_start():
                 "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "text TEXT)")
 
+    cur.execute("CREATE TABLE IF NOT EXISTS published_posts("
+                "post_id TEXT,"
+                "where_sent TEXT)")
+
     db.commit()
 
 
@@ -303,3 +307,20 @@ def select_samples():
 def select_sample(sample_id):
     return cur.execute(
         "SELECT text FROM samples WHERE id = '{}'".format(sample_id)).fetchone()
+
+
+def select_published_post(post_id):
+    return cur.execute(
+        "SELECT post_id, where_sent FROM published_posts WHERE post_id = '{}'".format(post_id)).fetchone()
+
+
+def add_published_post(post_id, where_sent):
+    cur.execute(
+        "INSERT INTO published_posts (post_id, where_sent) VALUES ('{}', '{}')".format(post_id, where_sent)
+    )
+    db.commit()
+
+
+def delete_published_post(post_id):
+    cur.execute("DELETE FROM published_posts WHERE post_id = '{}'".format(post_id))
+    db.commit()

@@ -7,7 +7,8 @@ from database.db import del_mg_caption, update_mg_caption, select_mg_caption, ge
     delete_signature, update_signature, select_who_worked, add_who_worked
 from keyboards import get_edit_mg_kb, get_main_post_kb_for_media_group, back_edit_mg_kb, \
     set_signature_for_post_mg_kb, get_signatures_mg, back_sign_mg_kb, get_signatures_for_del_mg, \
-    get_edit_signature_mg_kb, back_sign_mg_edit_kb, publish_telegram_mg_kb, back_publish_mg_tg
+    get_edit_signature_mg_kb, back_sign_mg_edit_kb, publish_telegram_mg_kb, back_publish_mg_tg, publish_post_kb, \
+    publish_post_mg_now_kb, publish_post_mg_with_time_kb
 from routers.admin.operations import get_id_for_mg
 from routers.post.operations import empty_signature, delete_signature_in_text, publish_post_mg_now, \
     check_format, get_time_sleep, publish_post_mg_on_time
@@ -33,7 +34,7 @@ async def back_publish_post_mg_tg(callback_query: types.CallbackQuery, state: FS
         mess_bot = data.get("mess_time")
         await mess_bot.delete()
     await state.clear()
-    await callback_query.message.edit_reply_markup(reply_markup=publish_telegram_mg_kb(messages_ids))
+    await callback_query.message.edit_reply_markup(reply_markup=publish_post_kb(messages_ids))
 
 
 @router.callback_query(AddTextMg.add)
@@ -414,3 +415,26 @@ async def publish_post_mg_tg_set_time(message: types.Message, state: FSMContext)
 @flags.authorization(post_rights=True)
 async def publish_post_mg_vk(callback_query: types.CallbackQuery):
     await callback_query.answer("Не работает")
+
+
+@router.callback_query(F.data.startswith("mg_post_start_publish"))
+@flags.authorization(post_rights=True)
+async def mg_start_post_publish(callback_query: types.CallbackQuery):
+    messages_ids = callback_query.data.split("mg_post_start_publish")[-1]
+    await callback_query.message.edit_reply_markup(reply_markup=publish_post_kb(messages_ids))
+
+
+@router.callback_query(F.data.startswith("mg_now_publish_post"))
+@flags.authorization(post_rights=True)
+async def mg_now_publish_post(callback_query: types.CallbackQuery):
+    messages_ids = callback_query.data.split("mg_now_publish_post")[-1]
+    await callback_query.message.edit_reply_markup(
+        reply_markup=publish_post_mg_now_kb(messages_ids))
+
+
+@router.callback_query(F.data.startswith("mg_time_publish_post"))
+@flags.authorization(post_rights=True)
+async def mg_time_publish_post(callback_query: types.CallbackQuery):
+    messages_ids = callback_query.data.split("mg_time_publish_post")[-1]
+    await callback_query.message.edit_reply_markup(
+        reply_markup=publish_post_mg_with_time_kb(messages_ids))
