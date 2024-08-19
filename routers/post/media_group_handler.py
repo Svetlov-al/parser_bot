@@ -8,7 +8,7 @@ from database.db import del_mg_caption, update_mg_caption, select_mg_caption, ge
 from keyboards import get_edit_mg_kb, get_main_post_kb_for_media_group, back_edit_mg_kb, \
     set_signature_for_post_mg_kb, get_signatures_mg, back_sign_mg_kb, get_signatures_for_del_mg, \
     get_edit_signature_mg_kb, back_sign_mg_edit_kb, publish_telegram_mg_kb, back_publish_mg_tg, publish_post_kb, \
-    publish_post_mg_now_kb, publish_post_mg_with_time_kb
+    publish_post_mg_now_kb, publish_post_mg_with_time_kb, start_work_mg_kb
 from routers.admin.operations import get_id_for_mg
 from routers.post.operations import empty_signature, delete_signature_in_text, publish_post_mg_now, \
     check_format, get_time_sleep, publish_post_mg_on_time
@@ -87,6 +87,7 @@ async def start_to_work_mg(callback_query: types.CallbackQuery):
         await callback_query.message.edit_reply_markup(reply_markup=get_main_post_kb_for_media_group(messages_ids))
     else:
         await callback_query.answer("Уже взят другим в работу")
+        await callback_query.message.edit_reply_markup(reply_markup=start_work_mg_kb(messages_ids, started=True))
 
 
 @router.callback_query(F.data.startswith("mg_delete"))
@@ -404,7 +405,7 @@ async def publish_post_mg_tg_set_time(message: types.Message, state: FSMContext)
             mess_bot = data.get("mess_time")
             await mess_bot.delete()
             await state.clear()
-            await publish_post_mg_on_time(data.get("message"), data.get("message_ids").split("_"), time_sleep)
+            await publish_post_mg_on_time(data.get("message"), data.get("message_ids").split("_"), time_sleep, time_str)
         else:
             bot_message = await message.answer("Задано прошлое время")
             await asyncio.sleep(3)

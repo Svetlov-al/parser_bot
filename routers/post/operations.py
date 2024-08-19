@@ -8,7 +8,7 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from pytz import timezone
 
-from database.db import get_all_signatures, select_samples, add_published_post
+from database.db import get_all_signatures, select_samples, add_published_post, update_published_post
 from keyboards import publish_post_now_kb, publish_post_with_time, publish_post_mg_now_kb, publish_post_mg_with_time_kb
 from routers.admin.operations import get_channels_ids
 
@@ -99,16 +99,17 @@ async def publish_post_mg_now(callback_query: types.CallbackQuery, messages_ids)
         await callback_query.answer("Канал для публикации не настроен")
 
 
-async def publish_post_mg_on_time(message: types.Message, messages_ids, time_sleep):
+async def publish_post_mg_on_time(message: types.Message, messages_ids, time_sleep, time_str):
     chat_ids = get_channels_ids()
     if chat_ids:
         bot_message = await message.answer("Пост появиться в канале в указанное время")
-        add_published_post("_".join(messages_ids), "tg")
+        add_published_post("_".join(messages_ids), "tg", time_str)
         await message.edit_reply_markup(reply_markup=publish_post_mg_with_time_kb("_".join(messages_ids)))
         await asyncio.sleep(3)
         await bot_message.delete()
 
         await asyncio.sleep(time_sleep)
+        update_published_post("_".join(messages_ids), "tg")
         for chat_id in chat_ids:
             await message.bot.copy_messages(chat_id=chat_id, message_ids=[int(mess) for mess in messages_ids],
                                             from_chat_id=message.chat.id)
@@ -118,26 +119,29 @@ async def publish_post_mg_on_time(message: types.Message, messages_ids, time_sle
         await bot_mess.delete()
 
 
-async def publish_post_on_time(message: types.Message, time_sleep):
+async def publish_post_on_time(message: types.Message, time_sleep, time_str):
     chat_ids = get_channels_ids()
     if chat_ids:
         bot_message = await message.answer("Пост появиться в канале в указанное время")
-        add_published_post(message.message_id, "tg")
+        add_published_post(message.message_id, "tg", time_str)
         await message.edit_reply_markup(reply_markup=publish_post_with_time(message.message_id))
         await asyncio.sleep(3)
         await bot_message.delete()
         if message.photo:
             await asyncio.sleep(time_sleep)
+            update_published_post(message.message_id, "tg")
             for chat_id in chat_ids:
                 await message.bot.send_photo(chat_id=chat_id, caption=message.html_text,
                                              photo=message.photo[-1].file_id)
         elif message.video:
             await asyncio.sleep(time_sleep)
+            update_published_post(message.message_id, "tg")
             for chat_id in chat_ids:
                 await message.bot.send_video(chat_id=chat_id, caption=message.html_text,
                                              video=message.video.file_id)
         elif message.text:
             await asyncio.sleep(time_sleep)
+            update_published_post(message.message_id, "tg")
             for chat_id in chat_ids:
                 await message.bot.send_message(chat_id=chat_id, text=message.html_text)
 
