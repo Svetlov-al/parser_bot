@@ -23,7 +23,20 @@ def main_kb(user_id):
     return kb
 
 
-def start_work_mg_kb(message_id):
+def start_work_mg_kb(message_id, started=None):
+    if started:
+        _kb = InlineKeyboardMarkup(
+            inline_keyboard=
+            [
+                [
+                    InlineKeyboardButton(text="⚠️ Пост взят в работу", callback_data=f"123"),
+                ],
+                [
+                    InlineKeyboardButton(text="❌ Удалить", callback_data=f"mg_delete{message_id}"),
+                ]
+            ]
+        )
+        return _kb
     _kb = InlineKeyboardMarkup(
         inline_keyboard=
         [
@@ -43,6 +56,18 @@ start_work_kb = InlineKeyboardMarkup(
     [
         [
             InlineKeyboardButton(text="✅ Начать", callback_data=f"start_work"),
+        ],
+        [
+            InlineKeyboardButton(text="❌ Удалить", callback_data=f"post_delete"),
+        ]
+    ]
+)
+
+started_work_kb = InlineKeyboardMarkup(
+    inline_keyboard=
+    [
+        [
+            InlineKeyboardButton(text="⚠️ Пост взят в работу", callback_data=f"123"),
         ],
         [
             InlineKeyboardButton(text="❌ Удалить", callback_data=f"post_delete"),
@@ -614,18 +639,18 @@ def publish_post_now_kb(message_id):
             builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data=f"123"))
             return builder.as_markup()
         if post_published[1] == "tg":
-            builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
+            if post_published[2]:
+                builder.row(InlineKeyboardButton(text=f"✅ {post_published[2]} в 💎 ТГ", callback_data=f"123"))
+            else:
+                builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
             builder.row(InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"post_vk_now"))
         elif post_published[1] == "vk":
             builder.row(InlineKeyboardButton(text="☑️ Отправить в 💎 ТГ", callback_data=f"publish_now_tg"))
             builder.row(InlineKeyboardButton(text="✅ Отправлен в ➡️ ВК", callback_data=f"123"))
-        else:
-            builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
-            builder.row(InlineKeyboardButton(text="✅ Отправлен в ➡️ ВК", callback_data=f"123"))
     else:
         builder.row(InlineKeyboardButton(text="☑️ Отправить в 💎 ТГ", callback_data=f"publish_now_tg"))
         builder.row(InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"post_vk_now"))
-    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data="back_to_main"))
+    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data="start_post_publish"))
     return builder.as_markup()
 
 
@@ -639,7 +664,10 @@ def publish_post_with_time(message_id):
             builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data=f"123"))
             return builder.as_markup()
         if post_published[1] == "tg":
-            builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
+            if post_published[2]:
+                builder.row(InlineKeyboardButton(text=f"✅ {post_published[2]} в 💎 ТГ", callback_data=f"123"))
+            else:
+                builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
             builder.row(InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"set_publish_time_vk"))
         elif post_published[1] == "vk":
             builder.row(InlineKeyboardButton(text="☑️ Отправить в 💎 ТГ", callback_data=f"set_publish_time_tg"))
@@ -648,7 +676,7 @@ def publish_post_with_time(message_id):
     else:
         builder.row(InlineKeyboardButton(text="☑️ Отправить в 💎 ТГ", callback_data=f"set_publish_time_tg"))
         builder.row(InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"set_publish_time_vk"))
-    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data="back_to_main"))
+    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data="start_post_publish"))
     return builder.as_markup()
 
 
@@ -662,7 +690,10 @@ def publish_post_mg_now_kb(message_id):
             builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data=f"123"))
             return builder.as_markup()
         if post_published[1] == "tg":
-            builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
+            if post_published[2]:
+                builder.row(InlineKeyboardButton(text=f"✅ {post_published[2]} в 💎 ТГ", callback_data=f"123"))
+            else:
+                builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
             builder.row(
                 InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"mg_publish_vk_now{message_id}"))
         elif post_published[1] == "vk":
@@ -673,7 +704,7 @@ def publish_post_mg_now_kb(message_id):
     else:
         builder.row(InlineKeyboardButton(text="☑️ Отправить в 💎 ТГ", callback_data=f"mg_publish_now_tg{message_id}"))
         builder.row(InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"mg_publish_vk_now{message_id}"))
-    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data=f"mg_back_to_main{message_id}"))
+    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data=f"mg_post_start_publish{message_id}"))
     return builder.as_markup()
 
 
@@ -687,7 +718,10 @@ def publish_post_mg_with_time_kb(message_id):
             builder.row(InlineKeyboardButton(text="❌ Удалить", callback_data=f"123"))
             return builder.as_markup()
         if post_published[1] == "tg":
-            builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
+            if post_published[2]:
+                builder.row(InlineKeyboardButton(text=f"✅ {post_published[2]} в 💎 ТГ", callback_data=f"123"))
+            else:
+                builder.row(InlineKeyboardButton(text="✅ Отправлен в 💎 ТГ", callback_data=f"123"))
             builder.row(
                 InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"mg_set_publish_vk_time{message_id}"))
         elif post_published[1] == "vk":
@@ -700,6 +734,6 @@ def publish_post_mg_with_time_kb(message_id):
             InlineKeyboardButton(text="☑️ Отправить в 💎 ТГ", callback_data=f"mg_set_publish_time_tg{message_id}"))
         builder.row(
             InlineKeyboardButton(text="☑️ Отправить в ➡️ ВК", callback_data=f"mg_set_publish_vk_time{message_id}"))
-    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data=f"mg_back_to_main{message_id}"))
+    builder.row(InlineKeyboardButton(text="⏪ Назад", callback_data=f"mg_post_start_publish{message_id}"))
 
     return builder.as_markup()

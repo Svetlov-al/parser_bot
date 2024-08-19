@@ -7,7 +7,8 @@ from database.db import get_signature, add_signature, delete_signature, update_s
     add_who_worked, select_who_worked
 from keyboards import restore_post_kb, get_main_post_kb, publish_telegram_kb, back_edit_kb, get_signatures, \
     back_sign_kb, get_signatures_for_del, get_edit_signature_kb, back_sign_edit_kb, \
-    set_signature_for_post_kb, back_publish_tg, publish_post_kb, publish_post_now_kb, publish_post_with_time
+    set_signature_for_post_kb, back_publish_tg, publish_post_kb, publish_post_now_kb, publish_post_with_time, \
+    started_work_kb
 from routers.post.operations import empty_signature, delete_signature_in_text, \
     check_format, publish_post_now, get_time_sleep, publish_post_on_time, get_unique_file_id
 from routers.post.states import AddText, AddMedia, AddSignature, AddSignatureText, AddTimePost
@@ -76,6 +77,7 @@ async def start_work_with_post(callback_query: types.CallbackQuery):
         await callback_query.message.edit_reply_markup(reply_markup=get_main_post_kb())
     else:
         await callback_query.answer("Уже взят другим в работу")
+        await callback_query.message.edit_reply_markup(reply_markup=started_work_kb)
 
 
 @router.callback_query(F.data == "post_delete")
@@ -313,7 +315,7 @@ async def publish_post_tg_set_time(message: types.Message, state: FSMContext):
             mess_bot = data.get("mess_time")
             await mess_bot.delete()
             await state.clear()
-            await publish_post_on_time(data.get("message"), time_sleep)
+            await publish_post_on_time(data.get("message"), time_sleep, time_str)
         else:
             bot_message = await message.answer("Задано прошлое время")
             await asyncio.sleep(3)

@@ -56,7 +56,8 @@ async def db_start():
 
     cur.execute("CREATE TABLE IF NOT EXISTS published_posts("
                 "post_id TEXT,"
-                "where_sent TEXT)")
+                "where_sent TEXT,"
+                "publ_time TEXT)")
 
     db.commit()
 
@@ -311,13 +312,26 @@ def select_sample(sample_id):
 
 def select_published_post(post_id):
     return cur.execute(
-        "SELECT post_id, where_sent FROM published_posts WHERE post_id = '{}'".format(post_id)).fetchone()
+        "SELECT post_id, where_sent, publ_time FROM published_posts WHERE post_id = '{}'".format(post_id)).fetchone()
 
 
-def add_published_post(post_id, where_sent):
+def add_published_post(post_id, where_sent, publ_time=None):
+    if publ_time:
+        cur.execute(
+            "INSERT INTO published_posts (post_id, where_sent, publ_time) VALUES ('{}', '{}', '{}')".format(post_id,
+                                                                                                            where_sent,
+                                                                                                            publ_time))
+    else:
+        cur.execute(
+            "INSERT INTO published_posts (post_id, where_sent) VALUES ('{}', '{}')".format(post_id, where_sent)
+        )
+    db.commit()
+
+
+def update_published_post(post_id, where_sent):
     cur.execute(
-        "INSERT INTO published_posts (post_id, where_sent) VALUES ('{}', '{}')".format(post_id, where_sent)
-    )
+        "UPDATE published_posts SET publ_time = '' WHERE post_id = '{}' AND where_sent = '{}'".format(post_id,
+                                                                                                       where_sent))
     db.commit()
 
 
